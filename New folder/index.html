@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial App</title>
+
+<style>
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card{
+    width:380px;
+    background:#ffffff;
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 20px 40px rgba(0,0,0,0.4);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    font-size:22px;
+}
+
+.balance{
+    background:linear-gradient(135deg,#00c6ff,#0072ff);
+    color:white;
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.debt{
+    background:linear-gradient(135deg,#ff512f,#dd2476);
+    color:white;
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
+    margin-bottom:20px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    border:1px solid #ccc;
+    margin-bottom:15px;
+}
+
+.btn-group{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+button{
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:bold;
+    color:white;
+}
+
+.add{background:#00c853;}
+.add:hover{opacity:0.9;}
+.debtBtn{background:#d50000;}
+.reset{background:#424242;}
+
+.progress-bar{
+    height:15px;
+    background:#eee;
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:8px;
+}
+
+.progress{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#00c853,#64dd17);
+    transition:0.4s;
+}
+
+.text-center{text-align:center;font-weight:bold;margin-bottom:5px;}
+
+#loginScreen{
+    position:fixed;
+    inset:0;
+    background:#0f2027;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.login-box{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    width:300px;
+    text-align:center;
+}
+
+.login-box input{
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="loginScreen">
+    <div class="login-box">
+        <h3>🔐 Nhập mật khẩu</h3>
+        <input type="password" id="passwordInput" placeholder="Mật khẩu">
+        <button onclick="checkPassword()" style="margin-top:10px;background:#0072ff;">Mở</button>
+    </div>
+</div>
+
+<div class="card" id="app" style="display:none;">
+    <h1>💳 My Finance App</h1>
+
+    <div class="balance">
+        Tiền hiện có<br>
+        <span id="balance">0 VNĐ</span>
+    </div>
+
+    <div class="debt">
+        Tổng nợ<br>
+        <span id="debt">0 VNĐ</span>
+    </div>
+
+    <input type="number" id="amount" placeholder="Nhập số tiền...">
+
+    <div class="btn-group">
+        <button class="add" onclick="addMoney()">➕</button>
+        <button class="debtBtn" onclick="addDebt()">➖</button>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+    <div class="text-center" id="percentText">Đã trả: 0%</div>
+    <div class="text-center" id="remainText">Số tiền còn phải trả: 0 VNĐ</div>
+
+    <button class="reset" onclick="resetAll()">🗑 Reset toàn bộ dữ liệu</button>
+</div>
+
+<script>
+const APP_PASSWORD = "123456"; // đổi mật khẩu tại đây
+
+let balance = Number(localStorage.getItem("balance")) || 0;
+let debt = Number(localStorage.getItem("debt")) || 0;
+
+function save(){
+    localStorage.setItem("balance",balance);
+    localStorage.setItem("debt",debt);
+}
+
+function update(){
+    document.getElementById("balance").innerText = balance.toLocaleString()+" VNĐ";
+    document.getElementById("debt").innerText = debt.toLocaleString()+" VNĐ";
+
+    let percent = debt>0 ? (balance/debt)*100 : 0;
+    if(percent>100) percent=100;
+
+    document.getElementById("progress").style.width = percent+"%";
+    document.getElementById("percentText").innerText = "Đã trả: "+percent.toFixed(1)+"%";
+
+    let remain = debt-balance>0 ? debt-balance : 0;
+    document.getElementById("remainText").innerText = "Số tiền còn phải trả: "+remain.toLocaleString()+" VNĐ";
+}
+
+function addMoney(){
+    let v = parseFloat(document.getElementById("amount").value);
+    if(!v||v<=0) return;
+    balance+=v;
+    save();
+    update();
+    document.getElementById("amount").value="";
+}
+
+function addDebt(){
+    let v = parseFloat(document.getElementById("amount").value);
+    if(!v||v<=0) return;
+    debt+=v;
+    save();
+    update();
+    document.getElementById("amount").value="";
+}
+
+function resetAll(){
+    if(confirm("Bạn chắc chắn muốn reset toàn bộ dữ liệu?")){
+        localStorage.clear();
+        balance=0;
+        debt=0;
+        update();
+    }
+}
+
+function checkPassword(){
+    const input = document.getElementById("passwordInput").value;
+    if(input===APP_PASSWORD){
+        document.getElementById("loginScreen").style.display="none";
+        document.getElementById("app").style.display="block";
+    }else{
+        alert("Sai mật khẩu!");
+    }
+}
+
+update();
+</script>
+
+</body>
+</html>
